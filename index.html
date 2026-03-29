@@ -1,175 +1,374 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mira — AI Agent inside Telegram</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0a0a0f; --bg2: #111118; --bg3: #16161f;
-      --accent: #7c6ff7; --accent2: #a78bfa; --accent3: #c4b5fd;
-      --text: #f0eeff; --muted: #8b85b0; --border: rgba(124,111,247,0.15); --glow: rgba(124,111,247,0.25);
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#08080e;--bg2:#0f0f18;--bg3:#14141f;--bg4:#1a1a28;
+      --accent:#7c6ff7;--accent2:#a78bfa;--accent3:#c4b5fd;--pink:#e879f9;
+      --text:#f0eeff;--muted:#8b85b0;--muted2:#5f5a80;
+      --border:rgba(124,111,247,0.14);--glow:rgba(124,111,247,0.22);
     }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
-    .nav-logo { font-size: 22px; font-weight: 800; color: var(--accent2); letter-spacing: -0.5px; }
-    .nav-links { display: flex; gap: 32px; }
-    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-cta { background: var(--accent); color: #fff; padding: 10px 24px; border-radius: 100px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s; }
-    .nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
-    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 80px; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 800px; background: radial-gradient(circle, rgba(124,111,247,0.18) 0%, transparent 70%); pointer-events: none; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(124,111,247,0.12); border: 1px solid var(--border); border-radius: 100px; padding: 6px 16px; font-size: 13px; font-weight: 500; color: var(--accent3); margin-bottom: 32px; }
-    .hero-badge span { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
-    h1 { font-size: clamp(42px, 7vw, 88px); font-weight: 900; line-height: 1.05; letter-spacing: -2px; margin-bottom: 24px; max-width: 900px; }
-    h1 .gradient { background: linear-gradient(135deg, var(--accent2) 0%, #e879f9 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero-sub { font-size: clamp(16px, 2vw, 20px); color: var(--muted); max-width: 600px; margin-bottom: 48px; font-weight: 400; }
-    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-    .btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #9333ea 100%); color: #fff; padding: 16px 36px; border-radius: 100px; text-decoration: none; font-size: 16px; font-weight: 700; transition: all 0.3s; box-shadow: 0 0 40px var(--glow); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(124,111,247,0.4); }
-    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 16px 36px; border-radius: 100px; text-decoration: none; font-size: 16px; font-weight: 600; transition: all 0.3s; }
-    .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
-    .stats { display: flex; justify-content: center; gap: 64px; flex-wrap: wrap; padding: 60px 24px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg2); }
-    .stat { text-align: center; }
-    .stat-num { font-size: 40px; font-weight: 900; color: var(--accent2); letter-spacing: -1px; }
-    .stat-label { font-size: 14px; color: var(--muted); margin-top: 4px; }
-    section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
-    .section-label { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
-    h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; line-height: 1.1; }
-    .section-sub { font-size: 18px; color: var(--muted); max-width: 600px; margin-bottom: 60px; }
-    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-    .feature-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: all 0.3s; position: relative; overflow: hidden; }
-    .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0; transition: opacity 0.3s; }
-    .feature-card:hover { border-color: rgba(124,111,247,0.4); transform: translateY(-4px); }
-    .feature-card:hover::before { opacity: 1; }
-    .feature-icon { font-size: 32px; margin-bottom: 16px; }
-    .feature-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-    .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
-    .how-section { background: var(--bg2); padding: 100px 24px; }
-    .how-inner { max-width: 1200px; margin: 0 auto; }
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-top: 60px; }
-    .step { text-align: center; }
-    .step-num { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #9333ea); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; margin: 0 auto 20px; box-shadow: 0 0 30px var(--glow); }
-    .step-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
-    .step-desc { font-size: 14px; color: var(--muted); }
-    .integrations-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
-    .integration-tag { background: var(--bg3); border: 1px solid var(--border); border-radius: 100px; padding: 8px 20px; font-size: 14px; font-weight: 500; color: var(--muted); transition: all 0.2s; }
-    .integration-tag:hover { border-color: var(--accent); color: var(--accent2); }
-    .audience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
-    .audience-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
-    .audience-emoji { font-size: 28px; margin-bottom: 12px; }
-    .audience-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .audience-desc { font-size: 14px; color: var(--muted); }
-    .private-section { background: linear-gradient(135deg, rgba(124,111,247,0.08) 0%, rgba(147,51,234,0.08) 100%); border: 1px solid var(--border); border-radius: 32px; padding: 80px 60px; text-align: center; max-width: 1152px; margin: 0 auto; }
-    .private-section h2 { margin-bottom: 20px; }
-    .private-section p { color: var(--muted); font-size: 18px; max-width: 600px; margin: 0 auto 40px; }
-    .cta-section { text-align: center; padding: 120px 24px; background: var(--bg2); }
-    .cta-section h2 { margin-bottom: 20px; }
-    .cta-section p { color: var(--muted); font-size: 18px; margin-bottom: 48px; }
-    footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; background: var(--bg); }
-    .footer-logo { font-size: 18px; font-weight: 800; color: var(--accent2); }
-    .footer-links { display: flex; gap: 24px; }
-    .footer-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--text); }
-    .footer-copy { color: var(--muted); font-size: 13px; }
-    @media (max-width: 768px) { nav { padding: 16px 20px; } .nav-links { display: none; } .private-section { padding: 48px 24px; } footer { flex-direction: column; text-align: center; } }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:rgba(8,8,14,0.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+    .nav-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;color:var(--accent2);letter-spacing:-0.5px;text-decoration:none}
+    .nav-logo span{font-size:22px}
+    .nav-links{display:flex;gap:28px}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-cta{background:linear-gradient(135deg,var(--accent),#9333ea);color:#fff;padding:10px 22px;border-radius:100px;text-decoration:none;font-size:14px;font-weight:700;transition:all .2s;box-shadow:0 0 20px var(--glow)}
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 0 32px rgba(124,111,247,.4)}
+
+    /* HERO */
+    .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 24px 80px;position:relative;overflow:hidden}
+    .hero-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:900px;height:900px;background:radial-gradient(circle,rgba(124,111,247,.15) 0%,transparent 65%);pointer-events:none}
+    .hero-glow2{position:absolute;bottom:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(232,121,249,.08) 0%,transparent 65%);pointer-events:none}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,111,247,.1);border:1px solid rgba(124,111,247,.25);border-radius:100px;padding:6px 18px;font-size:13px;font-weight:600;color:var(--accent3);margin-bottom:32px;letter-spacing:.3px}
+    .badge-dot{width:7px;height:7px;background:var(--accent2);border-radius:50%;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+    h1{font-size:clamp(44px,7.5vw,92px);font-weight:900;line-height:1.03;letter-spacing:-2.5px;margin-bottom:24px;max-width:960px}
+    .grad{background:linear-gradient(135deg,var(--accent2) 0%,var(--pink) 50%,var(--accent3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-sub{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:620px;margin-bottom:48px;font-weight:400;line-height:1.7}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:64px}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#9333ea);color:#fff;padding:16px 36px;border-radius:100px;text-decoration:none;font-size:16px;font-weight:700;transition:all .3s;box-shadow:0 0 40px var(--glow)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(124,111,247,.45)}
+    .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text);padding:16px 36px;border-radius:100px;text-decoration:none;font-size:16px;font-weight:600;transition:all .3s}
+    .btn-secondary:hover{border-color:var(--accent);color:var(--accent2)}
+    .hero-note{font-size:13px;color:var(--muted2)}
+
+    /* STATS */
+    .stats-bar{display:flex;justify-content:center;gap:0;flex-wrap:wrap;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .stat{text-align:center;padding:40px 56px;border-right:1px solid var(--border)}
+    .stat:last-child{border-right:none}
+    .stat-num{font-size:36px;font-weight:900;color:var(--accent2);letter-spacing:-1px}
+    .stat-label{font-size:13px;color:var(--muted);margin-top:4px;font-weight:500}
+
+    /* SECTIONS */
+    .section{padding:100px 24px;max-width:1200px;margin:0 auto}
+    .section-full{padding:100px 24px;background:var(--bg2)}
+    .section-inner{max-width:1200px;margin:0 auto}
+    .label{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+    h2{font-size:clamp(30px,4vw,52px);font-weight:900;letter-spacing:-1.5px;margin-bottom:18px;line-height:1.08}
+    .sub{font-size:18px;color:var(--muted);max-width:580px;margin-bottom:56px;line-height:1.7}
+
+    /* FEATURES */
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:20px}
+    .card{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:32px;transition:all .3s;position:relative;overflow:hidden}
+    .card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
+    .card:hover{border-color:rgba(124,111,247,.35);transform:translateY(-4px);background:var(--bg4)}
+    .card:hover::after{opacity:1}
+    .card-icon{font-size:34px;margin-bottom:16px}
+    .card-title{font-size:17px;font-weight:800;margin-bottom:10px;letter-spacing:-.3px}
+    .card-desc{font-size:14px;color:var(--muted);line-height:1.75}
+
+    /* HOW */
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:40px;margin-top:56px}
+    .step{text-align:center;position:relative}
+    .step-num{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#9333ea);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;margin:0 auto 20px;box-shadow:0 0 30px var(--glow)}
+    .step-title{font-size:16px;font-weight:800;margin-bottom:10px}
+    .step-desc{font-size:14px;color:var(--muted);line-height:1.7}
+
+    /* COMPARISON */
+    .compare-wrap{overflow-x:auto;margin-top:48px}
+    .compare{width:100%;border-collapse:collapse;font-size:14px}
+    .compare th{padding:14px 20px;text-align:left;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+    .compare th:first-child{color:var(--text)}
+    .compare td{padding:16px 20px;border-bottom:1px solid rgba(124,111,247,.07);color:var(--muted);vertical-align:middle}
+    .compare td:first-child{color:var(--text);font-weight:600}
+    .compare tr:last-child td{border-bottom:none}
+    .compare tr:hover td{background:rgba(124,111,247,.04)}
+    .compare .mira-col{color:var(--accent2)!important;font-weight:700!important}
+    .yes{color:#4ade80;font-weight:700}
+    .partial{color:#fbbf24;font-weight:600}
+    .no{color:var(--muted2)}
+    .compare-head{background:var(--bg4);border-radius:12px 12px 0 0}
+    .compare-head th:nth-child(2){color:var(--accent2);font-size:13px}
+
+    /* AUDIENCE */
+    .audience-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+    .aud-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:28px;transition:border-color .2s}
+    .aud-card:hover{border-color:rgba(124,111,247,.3)}
+    .aud-emoji{font-size:30px;margin-bottom:14px}
+    .aud-title{font-size:16px;font-weight:800;margin-bottom:8px}
+    .aud-desc{font-size:14px;color:var(--muted);line-height:1.7}
+
+    /* PRIVATE */
+    .private-box{background:linear-gradient(135deg,rgba(124,111,247,.09),rgba(147,51,234,.09));border:1px solid rgba(124,111,247,.2);border-radius:28px;padding:80px 60px;text-align:center;max-width:1152px;margin:0 auto}
+    .private-box h2{margin-bottom:18px}
+    .private-box p{color:var(--muted);font-size:18px;max-width:580px;margin:0 auto 40px;line-height:1.7}
+    .private-tags{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:40px}
+    .ptag{background:rgba(124,111,247,.1);border:1px solid var(--border);border-radius:100px;padding:6px 16px;font-size:13px;color:var(--accent3);font-weight:600}
+
+    /* INTEGRATIONS */
+    .int-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:40px}
+    .int-tag{background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:8px 20px;font-size:14px;font-weight:500;color:var(--muted);transition:all .2s;cursor:default}
+    .int-tag:hover{border-color:var(--accent);color:var(--accent2)}
+
+    /* CTA */
+    .cta-section{text-align:center;padding:120px 24px;background:var(--bg2)}
+    .cta-section h2{margin-bottom:18px}
+    .cta-section p{color:var(--muted);font-size:18px;margin-bottom:48px;max-width:500px;margin-left:auto;margin-right:auto}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);padding:36px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;background:var(--bg)}
+    .footer-logo{font-size:17px;font-weight:900;color:var(--accent2)}
+    .footer-links{display:flex;gap:24px}
+    .footer-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
+    .footer-links a:hover{color:var(--text)}
+    .footer-copy{color:var(--muted2);font-size:13px}
+
+    @media(max-width:768px){
+      nav{padding:14px 20px}
+      .nav-links{display:none}
+      .stat{padding:28px 24px;border-right:none;border-bottom:1px solid var(--border)}
+      .private-box{padding:48px 24px}
+      footer{flex-direction:column;text-align:center}
+    }
   </style>
 </head>
 <body>
+
 <nav>
-  <div class="nav-logo">✦ Mira</div>
+  <a href="#" class="nav-logo"><span>✦</span> Mira</a>
   <div class="nav-links">
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
-    <a href="#integrations">Integrations</a>
+    <a href="#compare">Compare</a>
     <a href="#privacy">Privacy</a>
   </div>
   <a href="https://mira.t.me/" class="nav-cta">Open in Telegram →</a>
 </nav>
+
+<!-- HERO -->
 <section class="hero">
-  <div class="hero-badge"><span></span> Now live inside Telegram</div>
-  <h1>Your AI agent that<br/><span class="gradient">turns chats into actions</span></h1>
-  <p class="hero-sub">Mira lives inside Telegram — the most natural interface for talking to an agent. Think, create, and act across every chat.</p>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="badge"><span class="badge-dot"></span> The first consumer AI agent inside Telegram</div>
+  <h1>Conversations that<br/><span class="grad">turn into actions</span></h1>
+  <p class="hero-sub">Mira is the AI agent built inside Telegram — the most natural interface for talking to an agent. Think, create, and act across personal and group chats.</p>
   <div class="hero-actions">
     <a href="https://mira.t.me/" class="btn-primary">Start with Mira</a>
     <a href="https://top.co/portfolio/mira" class="btn-secondary">Learn more</a>
   </div>
+  <p class="hero-note">Available in any chat · Type @mira to activate instantly</p>
 </section>
-<div class="stats">
+
+<!-- STATS -->
+<div class="stats-bar">
   <div class="stat"><div class="stat-num">500+</div><div class="stat-label">App integrations</div></div>
   <div class="stat"><div class="stat-num">@mira</div><div class="stat-label">Any chat, instantly</div></div>
-  <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Private mode available</div></div>
+  <div class="stat"><div class="stat-num">Multi-LLM</div><div class="stat-label">GPT · Qwen · Gemini · Claude</div></div>
   <div class="stat"><div class="stat-num">TON</div><div class="stat-label">Crypto-native layer</div></div>
 </div>
-<section id="features">
-  <div class="section-label">Capabilities</div>
-  <h2>Everything you need,<br/>inside one chat</h2>
-  <p class="section-sub">Mira is built to act, not just respond. From memory to crypto to content — all in Telegram.</p>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="label">Capabilities</div>
+  <h2>Built to act,<br/>not just respond</h2>
+  <p class="sub">Mira connects memory, content creation, crypto tools, and real-world actions — all inside Telegram.</p>
   <div class="features-grid">
-    <div class="feature-card"><div class="feature-icon">🧠</div><div class="feature-title">Personal Memory</div><div class="feature-desc">Mira builds structured memory, understands your preferences, and adapts over time — across personal and group chats.</div></div>
-    <div class="feature-card"><div class="feature-icon">⚡️</div><div class="feature-title">Agentic Execution</div><div class="feature-desc">Through Skills and MCP integrations, Mira connects to Notion, Calendar, wallets, and hundreds of services — orchestrating multi-step tasks in natural dialogue.</div></div>
-    <div class="feature-card"><div class="feature-icon">🎨</div><div class="feature-title">AI Creator Studio</div><div class="feature-desc">High-quality image and video generation natively inside Telegram — with end-to-end automation and smart model selection for each task.</div></div>
-    <div class="feature-card"><div class="feature-icon">💎</div><div class="feature-title">Crypto-Native Layer</div><div class="feature-desc">Mira operates directly with TON wallets, transactions, and real-time token data — enabling on-chain actions through conversation.</div></div>
-    <div class="feature-card"><div class="feature-icon">👥</div><div class="feature-title">Group Intelligence</div><div class="feature-desc">Mira understands multi-user dynamics, retains shared context, summarizes discussions, and participates like a digital teammate.</div></div>
-    <div class="feature-card"><div class="feature-icon">🤖</div><div class="feature-title">Agent-to-Agent</div><div class="feature-desc">Connect specialized agents to Mira for professional tasks and complex multi-step automations — chaining with external LLMs seamlessly.</div></div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">Social Memory</div>
+      <div class="card-desc">Unlike standalone AI apps, Mira operates within real conversations — retaining contextual and structured memory over time. The more people use Mira together, the smarter the network becomes.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡️</div>
+      <div class="card-title">Agentic Infrastructure</div>
+      <div class="card-desc">Through Skills and MCP integrations, Mira connects to TON Wallet, Notion, Calendar, and hundreds of services — orchestrating tools, memory, and actions inside Telegram.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <div class="card-title">AI Creator Studio</div>
+      <div class="card-desc">Instant, high-quality image and video generation natively inside Telegram — with end-to-end automation and an agent that dynamically selects the best model for each task.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💎</div>
+      <div class="card-title">Crypto-Native Layer</div>
+      <div class="card-desc">Mira operates directly with TON wallets, transactions, and real-time token data. Mira has its own agent sub-wallet for autonomous transactions with user-authorized limits.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <div class="card-title">Group Intelligence</div>
+      <div class="card-desc">Mira understands multi-user dynamics, retains shared context, summarizes discussions, and participates like a digital teammate — built for groups from day one.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤝</div>
+      <div class="card-title">Business Delegation</div>
+      <div class="card-desc">Connect your Telegram Business account and delegate inbound/outbound communication. Mira qualifies leads, books meetings, and keeps teams aligned with timely updates.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">Agent-to-Agent</div>
+      <div class="card-desc">Connect specialized agents to Mira for professional tasks and multi-step automations — chaining with external LLMs for complex workflows.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">AI-Powered Search</div>
+      <div class="card-desc">Mira surfaces missed updates across chats and channels, enabling instant retrieval from your personal and group conversation history.</div>
+    </div>
   </div>
 </section>
-<div class="how-section" id="how">
-  <div class="how-inner">
-    <div class="section-label">How it works</div>
-    <h2>Three steps to your<br/>AI-powered workflow</h2>
+
+<!-- HOW IT WORKS -->
+<div class="section-full" id="how">
+  <div class="section-inner">
+    <div class="label">How it works</div>
+    <h2>Three steps to your<br/>AI execution layer</h2>
     <div class="steps">
-      <div class="step"><div class="step-num">1</div><div class="step-title">Open Telegram</div><div class="step-desc">Find @mira or type @mira in any message field. No downloads, no setup — just start talking.</div></div>
-      <div class="step"><div class="step-num">2</div><div class="step-title">Connect your tools</div><div class="step-desc">Link Notion, Calendar, GitHub, Slack, and 500+ more services in seconds via OAuth.</div></div>
-      <div class="step"><div class="step-num">3</div><div class="step-title">Let Mira act</div><div class="step-desc">Mira executes tasks, remembers context, and proactively runs your workflows — so you don't have to.</div></div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Open Telegram</div>
+        <div class="step-desc">Find @mira or type @mira in any message field. No downloads, no setup — just start talking.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Connect your tools</div>
+        <div class="step-desc">Link Notion, Calendar, GitHub, TON Wallet, and 500+ more services in seconds via OAuth or MCP.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Let Mira act</div>
+        <div class="step-desc">Mira executes tasks, remembers context, and proactively runs your workflows — so you don't have to.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Grow together</div>
+        <div class="step-desc">The more you use Mira — alone or in groups — the smarter and more personalized it becomes.</div>
+      </div>
     </div>
   </div>
 </div>
-<section id="integrations">
-  <div class="section-label">Integrations</div>
-  <h2>Connects to everything<br/>you already use</h2>
-  <p class="section-sub">500+ integrations via APIs and MCP — from productivity tools to crypto infrastructure.</p>
-  <div class="integrations-grid">
-    <span class="integration-tag">Notion</span><span class="integration-tag">Google Calendar</span><span class="integration-tag">GitHub</span><span class="integration-tag">Slack</span><span class="integration-tag">Gmail</span><span class="integration-tag">Linear</span><span class="integration-tag">HubSpot</span><span class="integration-tag">Figma</span><span class="integration-tag">TON Wallet</span><span class="integration-tag">Granola</span><span class="integration-tag">Strava</span><span class="integration-tag">Instagram</span><span class="integration-tag">LinkedIn</span><span class="integration-tag">Vapi</span><span class="integration-tag">Google Slides</span><span class="integration-tag">+ 500 more</span>
-  </div>
-</section>
-<section>
-  <div class="section-label">Who it's for</div>
+
+<!-- AUDIENCE -->
+<section class="section">
+  <div class="label">Who it's for</div>
   <h2>Built for people who<br/>get things done</h2>
+  <p class="sub">From solo founders to enterprise teams — Mira adapts to how you work.</p>
   <div class="audience-grid">
-    <div class="audience-card"><div class="audience-emoji">🚀</div><div class="audience-title">Founders & Operators</div><div class="audience-desc">AI automation without server setup. Delegate ops, scheduling, and follow-ups to Mira.</div></div>
-    <div class="audience-card"><div class="audience-emoji">💻</div><div class="audience-title">Power Users of Claude/GPT</div><div class="audience-desc">An agent that actually executes — not just responds. Multi-step workflows, real actions.</div></div>
-    <div class="audience-card"><div class="audience-emoji">👥</div><div class="audience-title">Teams in Telegram</div><div class="audience-desc">AI embedded in your workflow. Group memory, summaries, and coordination — all in chat.</div></div>
-    <div class="audience-card"><div class="audience-emoji">🏢</div><div class="audience-title">SMBs</div><div class="audience-desc">A procurement and ops layer without hiring a team. Mira handles the coordination.</div></div>
+    <div class="aud-card">
+      <div class="aud-emoji">🚀</div>
+      <div class="aud-title">Founders & Operators</div>
+      <div class="aud-desc">AI automation without server setup. Delegate ops, scheduling, and follow-ups to Mira inside Telegram.</div>
+    </div>
+    <div class="aud-card">
+      <div class="aud-emoji">💻</div>
+      <div class="aud-title">Power Users of Claude/GPT</div>
+      <div class="aud-desc">An agent that actually executes — not just responds. Multi-step workflows, real actions, real results.</div>
+    </div>
+    <div class="aud-card">
+      <div class="aud-emoji">👥</div>
+      <div class="aud-title">Teams in Telegram</div>
+      <div class="aud-desc">AI embedded in your workflow. Group memory, summaries, and coordination — all in the chat you already use.</div>
+    </div>
+    <div class="aud-card">
+      <div class="aud-emoji">🏢</div>
+      <div class="aud-title">SMBs</div>
+      <div class="aud-desc">A procurement and ops layer without hiring a team. Mira handles coordination, communication, and follow-up.</div>
+    </div>
   </div>
 </section>
-<div id="privacy" style="padding: 0 0 100px;">
-  <div class="private-section">
-    <div class="section-label" style="margin-bottom:16px;">🔒 Private Mode</div>
-    <h2>Your data stays yours</h2>
-    <p>For those who value freedom and control — Mira's Private Mode routes all requests through Cocoon's decentralised GPU network (TEE). Zero data stored. Zero third-party access.</p>
-    <a href="https://mira.t.me/" class="btn-primary">Enable Private Mode</a>
+
+<!-- COMPARE -->
+<div class="section-full" id="compare">
+  <div class="section-inner">
+    <div class="label">Comparison</div>
+    <h2>Why Mira wins</h2>
+    <p class="sub">Mira is the only AI agent built natively for Telegram's social graph — not bolted on top.</p>
+    <div class="compare-wrap">
+      <table class="compare">
+        <thead class="compare-head">
+          <tr>
+            <th>Feature</th>
+            <th>✦ Mira</th>
+            <th>OpenClaw</th>
+            <th>ChatGPT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Core product</td><td class="mira-col">Telegram AI Agent</td><td>Self-host Agent</td><td>General AI app</td></tr>
+          <tr><td>Social graph</td><td class="yes">✓ Yes</td><td class="no">No</td><td class="no">No</td></tr>
+          <tr><td>Group-native</td><td class="yes">✓ Built for groups</td><td class="no">No</td><td class="no">No</td></tr>
+          <tr><td>Proactive actions</td><td class="yes">✓ Yes</td><td class="yes">✓ Yes</td><td class="no">No</td></tr>
+          <tr><td>Crypto layer</td><td class="mira-col">TON-native</td><td class="partial">Optional</td><td class="no">Not native</td></tr>
+          <tr><td>Business delegation</td><td class="mira-col">Telegram Business</td><td class="partial">Partial</td><td class="no">Not Telegram</td></tr>
+          <tr><td>Creator studio</td><td class="mira-col">In-chat studio</td><td class="partial">DIY pipelines</td><td class="partial">Built-in tools</td></tr>
+          <tr><td>Model choice</td><td class="mira-col">Multi-LLM</td><td class="partial">Multi-LLM</td><td class="no">Mostly OpenAI</td></tr>
+          <tr><td>Private mode</td><td class="mira-col">Decentralized GPUs</td><td class="partial">Self-hosted</td><td class="no">Enterprise only</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+<!-- PRIVATE MODE -->
+<section class="section" id="privacy" style="padding-bottom:0">
+  <div class="private-box">
+    <div class="label" style="margin-bottom:14px">🔒 Private Mode</div>
+    <h2>Your data stays yours</h2>
+    <p>For those who value freedom and control — Mira's Private Mode routes all requests through Cocoon's decentralised GPU network. Data is encrypted at processing time. No third-party access. No storage.</p>
+    <div class="private-tags">
+      <span class="ptag">Decentralized GPUs</span>
+      <span class="ptag">TEE Encryption</span>
+      <span class="ptag">Zero data retention</span>
+      <span class="ptag">Cocoon Network</span>
+    </div>
+    <a href="https://mira.t.me/" class="btn-primary">Enable Private Mode</a>
+  </div>
+</section>
+
+<!-- INTEGRATIONS -->
+<section class="section">
+  <div class="label">Integrations</div>
+  <h2>Connects to everything<br/>you already use</h2>
+  <p class="sub">500+ integrations via APIs and MCP — from productivity tools to crypto infrastructure.</p>
+  <div class="int-grid">
+    <span class="int-tag">TON Wallet</span>
+    <span class="int-tag">Notion</span>
+    <span class="int-tag">Google Calendar</span>
+    <span class="int-tag">GitHub</span>
+    <span class="int-tag">Slack</span>
+    <span class="int-tag">Gmail</span>
+    <span class="int-tag">Linear</span>
+    <span class="int-tag">HubSpot</span>
+    <span class="int-tag">Figma</span>
+    <span class="int-tag">Granola</span>
+    <span class="int-tag">Strava</span>
+    <span class="int-tag">Instagram</span>
+    <span class="int-tag">LinkedIn</span>
+    <span class="int-tag">Vapi</span>
+    <span class="int-tag">Google Slides</span>
+    <span class="int-tag">Google BigQuery</span>
+    <span class="int-tag">Telegram Business</span>
+    <span class="int-tag">+ 500 more</span>
+  </div>
+</section>
+
+<!-- CTA -->
 <div class="cta-section">
-  <div class="section-label">Get started</div>
+  <div class="label">Get started</div>
   <h2>Ready to act, not just chat?</h2>
   <p>Join thousands of users who've turned Telegram into their AI execution layer.</p>
   <a href="https://mira.t.me/" class="btn-primary">Open Mira in Telegram →</a>
 </div>
+
 <footer>
   <div class="footer-logo">✦ Mira</div>
   <div class="footer-links">
     <a href="https://mira.t.me/">Telegram</a>
     <a href="https://x.com/mira_t_me">Twitter / X</a>
     <a href="https://top.co/portfolio/mira">The Open Platform</a>
+    <a href="http://mira.tg/">mira.tg</a>
   </div>
   <div class="footer-copy">© 2026 Mira · The Open Platform</div>
 </footer>
+
 </body>
 </html>
